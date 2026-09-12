@@ -1,0 +1,16 @@
+{
+  "name": "lyric-hud-server",
+  "version": "1.0.0",
+  "description": "Local server for Lyric HUD with WebSocket relay",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test-server.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "pusher": "^5.3.4",
+    "ws": "^8.18.0"
+  }
+}

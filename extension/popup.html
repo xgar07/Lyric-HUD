@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lyric HUD Status</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="header">
+    <div class="title-group">
+      <div class="logo-icon">🎵</div>
+      <h2>Lyric HUD</h2>
+    </div>
+    <div id="server-badge" class="badge badge-offline">Server: Offline</div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Lagu yang Terdeteksi</div>
+    <div id="track-title" class="track-title">Menunggu YouTube...</div>
+    <div id="track-artist" class="track-artist">-</div>
+
+    <div class="progress-container">
+      <div id="progress-bar" class="progress-bar" style="width: 0%;"></div>
+    </div>
+    <div class="time-row">
+      <span id="time-current">00:00</span>
+      <span id="playback-status" class="status-pill">IDLE</span>
+      <span id="time-duration">00:00</span>
+    </div>
+  </div>
+
+  <div class="action-section">
+    <button id="btn-open-display" class="btn btn-primary">
+      📱 Buka Web Display HUD
+    </button>
+    <button id="btn-test-conn" class="btn btn-secondary">
+      🔄 Cek Koneksi Server
+    </button>
+  </div>
+
+  <div class="footer">
+    <span id="footer-text">Pastikan server lokal berjalan di port 3000</span>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

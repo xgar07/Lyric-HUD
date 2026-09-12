@@ -1,0 +1,780 @@
+/* Lyric HUD - Premium Minimal Dark AMOLED Mobile Display */
+
+:root {
+  --font-system: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Mode Normal (Default Contrast) */
+  --bg-amoled: #000000;
+  --accent-cyan: #38bdf8;
+  --lyric-curr: #ffffff;
+  --lyric-curr-glow: 0 0 24px rgba(56, 189, 248, 0.65), 0 0 45px rgba(59, 130, 246, 0.25);
+  --lyric-prev: rgba(255, 255, 255, 0.38);
+  --lyric-next-1: rgba(255, 255, 255, 0.58);
+  --lyric-next-2: rgba(255, 255, 255, 0.30);
+  --text-artist: rgba(56, 189, 248, 0.95);
+  --text-title: #f8fafc;
+  --text-time: rgba(255, 255, 255, 0.45);
+}
+
+/* Mode Dim */
+.mode-dim {
+  --lyric-curr: #cbd5e1;
+  --lyric-curr-glow: none;
+  --lyric-prev: rgba(255, 255, 255, 0.22);
+  --lyric-next-1: rgba(255, 255, 255, 0.38);
+  --lyric-next-2: rgba(255, 255, 255, 0.18);
+  --text-artist: rgba(56, 189, 248, 0.6);
+  --text-title: #94a3b8;
+  --text-time: rgba(255, 255, 255, 0.25);
+}
+
+/* Mode Ultra Dim (Cocok untuk kamar / ruangan gelap total) */
+.mode-ultra-dim {
+  --lyric-curr: #64748b;
+  --lyric-curr-glow: none;
+  --lyric-prev: rgba(255, 255, 255, 0.12);
+  --lyric-next-1: rgba(255, 255, 255, 0.20);
+  --lyric-next-2: rgba(255, 255, 255, 0.08);
+  --text-artist: #334155;
+  --text-title: #475569;
+  --text-time: #334155;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--bg-amoled);
+  color: var(--lyric-curr);
+  font-family: var(--font-system);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+/* /* Outer HUD Stage */
+.hud-stage {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  background-color: var(--bg-amoled);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  transition: background-color 0.3s ease;
+}
+
+/* Background Dinamis */
+.hud-background {
+  position: absolute;
+  top: -10%;
+  left: -10%;
+  width: 120%;
+  height: 120%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(25px);
+  z-index: 1;
+  transition: background-image 0.5s ease-in-out;
+}
+
+.hud-background-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 2;
+}
+
+/* Content Wrapper */
+.hud-content {
+  position: relative;
+  z-index: 10;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+/* 1. Header Informasi Lagu (Pojok Atas) */
+.hud-song-header {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 24px) + 1.25rem);
+  left: calc(env(safe-area-inset-left, 24px) + 1.25rem);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  z-index: 10;
+  max-width: 80%;
+}
+
+.song-artist-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-artist);
+  margin-bottom: 0.2rem;
+  transition: color 0.3s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.song-title-label {
+  font-size: clamp(1rem, 3vw, 1.25rem);
+  font-weight: 800;
+  color: var(--text-title);
+  line-height: 1.2;
+  transition: color 0.3s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 2. Focused Lyric Stage (Tengah Layar) */
+.hud-lyric-stage {
+  flex: 1;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  z-index: 5;
+  padding: 1rem 1.5rem;
+}
+
+/* 4-Line Focused Lyrics Container */
+.focused-lyrics-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 1.25rem;
+}
+
+/* Lyric Slots */
+.lyric-slot {
+  width: 100%;
+  max-width: 90%;
+  text-align: center;
+  line-height: 1.45;
+  word-break: break-word;
+  transition: all 0.25s ease-in-out;
+  min-height: 1.4em;
+  opacity: 1;
+}
+
+.slot-prev-hidden {
+  font-size: clamp(0.9rem, 3vw, 1.1rem);
+  color: var(--lyric-prev);
+  transform: translateY(8px) scale(0.9);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Slot 1: Previous Line */
+.slot-prev {
+  font-size: clamp(1rem, 3.8vw, 1.25rem);
+  color: var(--lyric-prev);
+  transform: translateY(4px) scale(0.95);
+  opacity: 0.7;
+}
+
+/* Slot 2: CURRENT LINE (Paling Besar & Glowing) */
+.slot-current {
+  font-size: clamp(1.65rem, 6vw, 2.5rem);
+  font-weight: 800;
+  color: var(--lyric-curr);
+  text-shadow: var(--lyric-curr-glow);
+  letter-spacing: -0.5px;
+  line-height: 1.35;
+  padding: 0.25rem 0.5rem;
+  transform: scale(1.05);
+  opacity: 1;
+}
+
+/* Slot 3: Next Line 1 */
+.slot-next-1 {
+  font-size: clamp(1.1rem, 4.2vw, 1.4rem);
+  font-weight: 500;
+  color: var(--lyric-next-1);
+  transform: translateY(-2px) scale(0.95);
+  opacity: 0.8;
+}
+
+/* Slot 4: Next Line 2 */
+.slot-next-2 {
+  font-size: clamp(0.92rem, 3.4vw, 1.15rem);
+  color: var(--lyric-next-2);
+  transform: translateY(-4px) scale(0.9);
+  opacity: 0.5;
+}
+
+/* State Messages (No-Lyrics / Waiting / Connecting) */
+.lyric-state-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+}
+
+.state-icon {
+  font-size: 2.2rem;
+  opacity: 0.6;
+}
+
+.state-pulse-dot {
+  width: 10px;
+  height: 10px;
+  background: var(--accent-cyan);
+  border-radius: 50%;
+  box-shadow: 0 0 12px var(--accent-cyan);
+  animation: pulse-dot 1.5s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.4; }
+}
+
+.state-text {
+  font-size: clamp(1.1rem, 4vw, 1.45rem);
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-artist);
+  opacity: 0.8;
+}
+
+.state-text.shimmer {
+  animation: shimmer 1.8s infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; text-shadow: 0 0 16px rgba(56, 189, 248, 0.8); }
+}
+
+.plain-lyrics-hint {
+  font-size: 0.8rem;
+  color: var(--text-time);
+}
+
+.plain-lyrics-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  height: 100%;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 1rem;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+  mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+}
+
+.plain-lyrics-text {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: var(--lyric-current);
+  white-space: pre-wrap;
+  text-align: center;
+  width: 100%;
+  max-width: 600px;
+  padding-bottom: 2rem;
+}
+
+/* 3. Full-width Progress Bar (Bawah) */
+.hud-full-progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem calc(env(safe-area-inset-bottom, 16px) + 1rem) 1.5rem;
+  z-index: 10;
+  gap: 1rem;
+}
+
+.progress-time {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-time);
+  min-width: 45px;
+}
+
+.progress-track {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent-cyan);
+  border-radius: 4px;
+  transition: width 0.1s linear;
+}
+
+/* 4. Tap-To-Show Controls Overlay */
+.hud-controls-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: calc(env(safe-area-inset-top, 0px) + 0.75rem) 1.25rem 0.75rem 1.25rem;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0) 100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 100;
+}
+
+.hud-controls-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.overlay-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* Connection Status Dot Minimalis */
+.connection-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.conn-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.conn-dot.online {
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.conn-dot.offline {
+  background: #ef4444;
+  box-shadow: 0 0 8px #ef4444;
+  animation: pulse-dot 1.2s infinite;
+}
+
+.conn-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #94a3b8;
+}
+
+/* Action Buttons */
+.overlay-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.overlay-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f1f5f9;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.overlay-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.overlay-btn.active {
+  background: rgba(56, 189, 248, 0.25);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+
+/* Settings Drawer */
+.settings-drawer-panel {
+  display: flex;
+  flex-direction: column;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 12px auto 0;
+  max-width: 320px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  animation: slide-down 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  gap: 16px;
+}
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.settings-header {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.mode-switcher {
+  display: flex;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 4px;
+  border-radius: 8px;
+  width: 100%;
+}
+
+.mode-switcher .mode-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 8px 0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mode-switcher .mode-btn.active {
+  background: var(--accent-cyan);
+  color: #000;
+}
+
+.mode-switcher .mode-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.smart-warning-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(234, 179, 8, 0.1);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  gap: 8px;
+  width: 100%;
+}
+
+.warning-text {
+  font-size: 0.8rem;
+  color: #fde047;
+  font-weight: 600;
+}
+
+.auto-align-btn {
+  background: rgba(234, 179, 8, 0.2);
+  border: 1px solid rgba(234, 179, 8, 0.5);
+  color: #fde047;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.auto-align-btn:hover {
+  background: rgba(234, 179, 8, 0.3);
+}
+
+.sync-offset-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.sync-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f1f5f9;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sync-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.sync-offset-display {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  min-width: 80px;
+  text-align: center;
+}
+
+.sync-reset-btn {
+  background: transparent;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 6px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 1px;
+}
+
+.sync-reset-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* 5. Modal QR Pairing (Connect Device) */
+.pairing-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 200;
+}
+
+.pairing-modal-card {
+  background: #0d0f17;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 1.75rem;
+  max-width: 360px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
+}
+
+.pairing-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 0.75rem;
+}
+
+.pairing-header h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.modal-close-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.pairing-subtitle {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  line-height: 1.45;
+  margin-bottom: 1.25rem;
+}
+
+.qr-container {
+  background: #ffffff;
+  padding: 12px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  margin-bottom: 1.25rem;
+}
+
+.qr-image {
+  width: 200px;
+  height: 200px;
+  display: block;
+}
+
+.url-copy-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 6px 10px;
+}
+
+.url-text {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: #38bdf8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 210px;
+}
+
+.copy-url-btn {
+  background: var(--accent-cyan);
+  border: none;
+  color: #000000;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.copy-url-btn:hover {
+  opacity: 0.85;
+}
+
+/* 6. Compact Debug Drawer */
+.compact-debug-drawer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(10, 12, 18, 0.95);
+  border-top: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 0.75rem 1rem;
+  z-index: 150;
+  font-family: var(--font-mono);
+}
+
+.debug-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #38bdf8;
+  margin-bottom: 0.5rem;
+}
+
+.debug-drawer-header button {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+.debug-drawer-code {
+  font-size: 0.75rem;
+  color: #cbd5e1;
+  max-height: 140px;
+  overflow-y: auto;
+  background: #000000;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+/* 7. Landscape Mode (Horizontal Phone Stand / Desk Dock) */
+@media (orientation: landscape) and (max-height: 520px) {
+  .hud-song-header {
+    top: calc(env(safe-area-inset-top, 12px) + 0.75rem);
+    left: calc(env(safe-area-inset-left, 12px) + 1.5rem);
+    max-width: 90%;
+  }
+
+  .song-title-label {
+    font-size: clamp(1rem, 2.5vw, 1.15rem);
+  }
+
+  .hud-full-progress-bar {
+    padding: 0 1.5rem calc(env(safe-area-inset-bottom, 8px) + 0.5rem) 1.5rem;
+  }
+
+  .hud-lyric-stage {
+    padding: 0 1.5rem;
+    max-width: 900px;
+  }
+
+  .focused-lyrics-container {
+    gap: 0.9rem;
+  }
+
+  .slot-current {
+    font-size: clamp(1.4rem, 4vw, 2rem);
+  }
+
+  .slot-prev,
+  .slot-next-1,
+  .slot-next-2 {
+    font-size: 1rem;
+  }
+}
+.plain-line { margin-bottom: 8px; line-height: 1.5; }

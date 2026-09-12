@@ -1,0 +1,27 @@
+{
+  "name": "lyric-hud",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Realtime YouTube Playback & Lyric HUD for Mobile & Desktop",
+  "scripts": {
+    "install:all": "npm --prefix server install && npm --prefix display install",
+    "build": "npm --prefix display run build",
+    "start": "node server/server.js",
+    "test": "npm --prefix server test",
+    "dev:server": "node server/server.js",
+    "dev:display": "npm --prefix display run dev"
+  },
+  "keywords": [
+    "lyric-hud",
+    "youtube",
+    "websocket",
+    "react",
+    "chrome-extension"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "pusher": "^5.3.4"
+  }
+}
